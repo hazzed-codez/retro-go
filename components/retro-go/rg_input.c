@@ -8,6 +8,7 @@
 #ifdef ESP_PLATFORM
 #include <driver/gpio.h>
 #include <driver/adc.h>
+#include <driver/i2c.h>
 // This is a lazy way to silence deprecation notices on some esp-idf versions...
 // This hardcoded value is the first thing to check if something stops working!
 #define ADC_ATTEN_DB_11 3
@@ -382,6 +383,35 @@ uint32_t rg_input_read_gamepad(void)
 #ifdef RG_TARGET_SDL2
     SDL_PumpEvents();
 #endif
+
+    // --- PASTE THIS STANDARD T-DECK CODE PATCH HERE ---
+#if defined(RG_TARGET_STANDARD_T_DECK)
+    uint8_t i2c_buffer[8] = {0}; 
+    uint8_t raw_cmd = T_DECK_KBD_MODE_RAW_CMD; // 0x03 from your config.h
+
+    // Query the standalone keyboard chip
+    if (i2c_master_write_read_device(I2C_NUM_0, T_DECK_KBD_ADDRESS, &raw_cmd, 1, i2c_buffer, 8, 100) == ESP_OK) {
+        uint32_t standard_state = 0;
+
+        // Trackball movements (Bits are low/0 when active)
+        if (!(i2c_buffer[0] & (1 << 0))) standard_state |= RG_KEY_UP;
+        if (!(i2c_buffer[0] & (1 << 1))) standard_state |= RG_KEY_DOWN;
+        if (!(i2c_buffer[0] & (1 << 2))) standard_state |= RG_KEY_LEFT;
+        if (!(i2c_buffer[0] & (1 << 3))) standard_state |= RG_KEY_RIGHT;
+        if (!(i2c_buffer[0] & (1 << 4))) standard_state |= RG_KEY_A; // Trackball click to fire!
+
+        // Basic Keyboard key mapping overrides
+        for (int i = 2; i < 8; i++) {
+            if (i2c_buffer[i] == 0x20) standard_state |= RG_KEY_START; // Spacebar = Start
+            if (i2c_buffer[i] == 0x1B) standard_state |= RG_KEY_MENU;  // Esc key = Menu
+            if (i2c_buffer[i] == 'e' || i2c_buffer[i] == 'E') standard_state |= RG_KEY_B; // E key = Interact
+        }
+
+        gamepad_state = standard_state;
+    }
+#endif
+    // --------------------------------------------------
+
     return gamepad_state;
 }
 
