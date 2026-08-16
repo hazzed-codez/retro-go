@@ -63,21 +63,13 @@
     ILI9341_CMD(0xE1, 0xD0, 0x00, 0x02, 0x07, 0x0a, 0x28, 0x31, 0x54, 0x47, 0x0E, 0x1C, 0x17, 0x1b, 0x1e);       \
 
 // Input
-#define RG_GAMEPAD_I2C_MAP { \
-    {RG_KEY_UP,     .num = 18, .level = 1},\
-    {RG_KEY_RIGHT,  .num = 17, .level = 1},\
-    {RG_KEY_DOWN,   .num = 20, .level = 1},\
-    {RG_KEY_LEFT,   .num = 19, .level = 1},\
-    {RG_KEY_SELECT, .num = 7,  .level = 1},\
-    {RG_KEY_START,  .num = 30, .level = 1},\
-    {RG_KEY_OPTION, .num = 31, .level = 1},\
-    {RG_KEY_A,      .num = 1,  .level = 1},\
-    {RG_KEY_B,      .num = 3,  .level = 1},\
-    {RG_KEY_X,      .num = 0,  .level = 1},\
-    {RG_KEY_Y,      .num = 21, .level = 1},\
-    {RG_KEY_L,      .num = 24, .level = 1},\
-    {RG_KEY_R,      .num = 14, .level = 1},\
-}
+// Replace lines 66-80 with this:
+#define RG_TARGET_STANDARD_T_DECK   1
+#define RG_GAMEPAD_DRIVER           0  // Tell Retro-Go to skip the Plus expander driver
+
+// We bypass the pin map and define the keys natively for the input.c listener loop
+#define T_DECK_STANDARD_KEYBOARD    1 
+
 #define RG_GAMEPAD_GPIO_MAP { \
     {RG_KEY_MENU, .num = GPIO_NUM_0, .pullup = 1, .level = 0},\
 }
